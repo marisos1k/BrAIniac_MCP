@@ -48,6 +48,8 @@ function createApp() {
   const defaultOrigins = [
     'http://localhost:3000',
     'http://127.0.0.1:3000',
+    'http://localhost:3001',
+    'http://127.0.0.1:3001',
     // Docker-compose: FRONTEND_PORT defaults to 3270 (frontend container)
     'http://localhost:3270',
     'http://127.0.0.1:3270'
@@ -56,12 +58,15 @@ function createApp() {
     .split(',')
     .map(o => o.trim())
     .filter(Boolean);
-  const allowedOrigins = parsedOrigins.length > 0 ? parsedOrigins : defaultOrigins;
+  const allowedOrigins = (parsedOrigins.length > 0 ? parsedOrigins : defaultOrigins)
+    .map(o => o.replace(/\/+$/, ''));
 
   const corsOptions = {
     origin: (origin, callback) => {
       if (!origin) return callback(null, true); // allow non-browser tools
-      if (allowedOrigins.includes(origin)) return callback(null, true);
+      const normalizedOrigin = origin.replace(/\/+$/, '');
+      if (allowedOrigins.includes(normalizedOrigin)) return callback(null, true);
+      console.error('CORS rejected origin:', origin);
       return callback(new Error('CORS: origin not allowed'));
     },
     credentials: true,
